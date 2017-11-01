@@ -310,6 +310,39 @@ class KotlinJsonAdapterTest {
     var b: Int = -1
   }
 
+  @Test fun doesNotAssignToPropertiesOfSameNameAsConstructorParameters() {
+    val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+    val jsonAdapter = moshi.adapter(ConstructorParameterWithSameNameAsProperty::class.java)
+
+    val encoded = ConstructorParameterWithSameNameAsProperty(5)
+    assertThat(jsonAdapter.toJson(encoded)).isEqualTo("{\"a\":-1,\"b\":5}")
+
+    val decoded = jsonAdapter.fromJson("{\"a\":5}")!!
+    assertThat(decoded.a).isEqualTo(-1)
+    assertThat(decoded.b).isEqualTo(5)
+  }
+
+  class ConstructorParameterWithSameNameAsProperty(a: Int) {
+    var a = -1
+    var b = a
+  }
+
+  @Test fun constructorParametersAndPropertiesWithSameNamesMustHaveSameTypes() {
+    val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+    try {
+      moshi.adapter(ConstructorParameterWithSameNameAsPropertyButDifferentType::class.java)
+      fail()
+    } catch (expected: IllegalArgumentException) {
+      assertThat(expected).hasMessage("'a' has a constructor parameter of type " +
+          "kotlin.Int but a property of type kotlin.String.")
+    }
+  }
+
+  class ConstructorParameterWithSameNameAsPropertyButDifferentType(a: Int) {
+    var a = "boo"
+    var b = a
+  }
+
   @Test fun supertypeConstructorParameters() {
     val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     val jsonAdapter = moshi.adapter(SubtypeConstructorParameters::class.java)
