@@ -685,6 +685,56 @@ final class JsonUtf8Reader extends JsonReader {
     }
   }
 
+  @Override
+  public Number nextNumber() throws IOException {
+    int p = peeked;
+    if (p == PEEKED_NONE) {
+      p = doPeek();
+    }
+
+    if (p == PEEKED_LONG) {
+      peeked = PEEKED_NONE;
+      pathIndices[stackSize - 1]++;
+      return peekedLong;
+    }
+
+    if (p == PEEKED_NUMBER) {
+      peekedString = buffer.readUtf8(peekedNumberLength);
+    } else if (p == PEEKED_DOUBLE_QUOTED) {
+      peekedString = nextQuotedValue(DOUBLE_QUOTE_OR_SLASH);
+    } else if (p == PEEKED_SINGLE_QUOTED) {
+      peekedString = nextQuotedValue(SINGLE_QUOTE_OR_SLASH);
+    } else if (p == PEEKED_UNQUOTED) {
+      peekedString = nextUnquotedValue();
+    } else if (p != PEEKED_BUFFERED) {
+      throw new JsonDataException("Expected a double but was " + peek() + " at path " + getPath());
+    }
+
+    peeked = PEEKED_BUFFERED;
+    Number result;
+    try {
+      if(peekedString.contains(".")){
+        result = Double.parseDouble(peekedString);
+      }else{
+        result = Long.parseLong(peekedString);
+      }
+    } catch (NumberFormatException e) {
+      throw new JsonDataException("Expected a double but was " + peekedString
+              + " at path " + getPath());
+    }
+    if(result instanceof Double){
+      Double d = (Double)result;
+      if (!lenient && (Double.isNaN(d) || Double.isInfinite(d))) {
+        throw new JsonEncodingException("JSON forbids NaN and infinities: " + result
+                + " at path " + getPath());
+      }
+    }
+    peekedString = null;
+    peeked = PEEKED_NONE;
+    pathIndices[stackSize - 1]++;
+    return result;
+  }
+
   @Override public double nextDouble() throws IOException {
     int p = peeked;
     if (p == PEEKED_NONE) {

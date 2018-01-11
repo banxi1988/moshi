@@ -294,7 +294,8 @@ final class StandardJsonAdapters {
           return stringAdapter.fromJson(reader);
 
         case NUMBER:
-          return doubleAdapter.fromJson(reader);
+          return reader.nextNumber();
+          //return doubleAdapter.fromJson(reader);
 
         case BOOLEAN:
           return booleanAdapter.fromJson(reader);

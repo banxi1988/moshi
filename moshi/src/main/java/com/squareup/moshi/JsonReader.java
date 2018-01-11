@@ -372,6 +372,13 @@ public abstract class JsonReader implements Closeable {
   public abstract double nextDouble() throws IOException;
 
   /**
+   *
+   * @throws JsonDataException if the next token is not a literal value, or if the next literal
+   *     value cannot be parsed as a double, or is non-finite.
+   */
+  public abstract Number nextNumber() throws IOException;
+
+  /**
    * Returns the {@linkplain Token#NUMBER long} value of the next token, consuming it. If the next
    * token is a string, this method will attempt to parse it as a long. If the next token's numeric
    * value cannot be exactly represented by a Java {@code long}, this method throws.
@@ -438,7 +445,13 @@ public abstract class JsonReader implements Closeable {
         return nextString();
 
       case NUMBER:
-        return nextDouble();
+          Number number =  nextNumber();
+          if(number instanceof Long){
+           return number.longValue();
+          }else{
+            return number.doubleValue();
+          }
+//        return nextDouble();
 
       case BOOLEAN:
         return nextBoolean();

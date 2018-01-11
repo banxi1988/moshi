@@ -933,7 +933,7 @@ public final class JsonReaderTest {
   @Test public void readJsonValueInt() throws IOException {
     JsonReader reader = newReader("1");
     Object value = reader.readJsonValue();
-    assertThat(value).isEqualTo(1.0);
+    assertThat(value).isEqualTo(1L);
   }
 
   @Test public void readJsonValueMap() throws IOException {
@@ -951,7 +951,7 @@ public final class JsonReaderTest {
   @Test public void readJsonValueListMultipleTypes() throws IOException {
     JsonReader reader = newReader("[\"a\", 5, false]");
     Object value = reader.readJsonValue();
-    assertThat(value).isEqualTo(Arrays.asList("a", 5.0, false));
+    assertThat(value).isEqualTo(Arrays.asList("a", 5L, false));
   }
 
   @Test public void readJsonValueNestedListInMap() throws IOException {

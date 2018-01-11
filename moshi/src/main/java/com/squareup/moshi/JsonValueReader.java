@@ -199,6 +199,31 @@ final class JsonValueReader extends JsonReader {
     return null;
   }
 
+  @Override
+  public Number nextNumber() throws IOException {
+    Object peeked = require(Object.class, Token.NUMBER);
+    Number result;
+    if(peeked instanceof Number){
+      result = (Number)peeked;
+    }else if(peeked instanceof String){
+      try{
+        String str = (String)peeked;
+        // if is double
+        if(str.contains(".")){
+          result = Double.parseDouble(str);
+        }else{
+          result = Long.parseLong(str);
+        }
+      }catch (NumberFormatException e){
+        throw typeMismatch(peeked, Token.NUMBER);
+      }
+    }else{
+      throw typeMismatch(peeked, Token.NUMBER);
+    }
+    remove();
+    return result;
+  }
+
   @Override public double nextDouble() throws IOException {
     Object peeked = require(Object.class, Token.NUMBER);
 
